@@ -2,7 +2,7 @@
 const data = {
   spec: '',
   salePrice: '',
-  alloyPrice: 1100,
+  alloyPrice: 2250,
   wirePrice: 6200,
   basePrice: 11.0,
   alloyType: '6000',
@@ -19,7 +19,7 @@ const data = {
   // 上次值
   lastSpec: '',
   lastPrice: '',
-  lastAlloy: 1100,
+  lastAlloy: 2250,
   lastWire: 6200,
   lastBase: 11.0,
 
@@ -249,7 +249,7 @@ function getTeethCount() {
 function calc() {
   const spec = el.spec.value;
   const salePrice = el.salePrice.value;
-  const alloyPrice = parseFloat(el.alloyPrice.value) || 1100;
+  const alloyPrice = parseFloat(el.alloyPrice.value) || 2250;
   const wirePrice = parseFloat(el.wirePrice.value) || 6200;
   const basePrice = parseFloat(el.basePrice.value) || 11.0;
 
