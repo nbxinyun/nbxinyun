@@ -25,7 +25,7 @@ body {
   margin-bottom: 5px;
 }
 
-/* 核心输入区 */
+/* 核心输入区 - 适配手机端 */
 .input-section {
   background: #fff;
   border-radius: 6px;
@@ -36,24 +36,27 @@ body {
   display: flex;
   align-items: center;
   margin-bottom: 8px;
+  gap: 8px; /* 标签和输入框间距更合理 */
 }
 .form-item span {
-  width: 90px;
+  width: 80px; /* 缩小标签宽度，适配手机 */
   font-size: 14px;
   color: #666;
+  flex-shrink: 0; /* 防止标签被压缩 */
 }
 .form-item input {
   flex: 1;
   border: 1px solid #eee;
-  padding: 8px;
+  padding: 8px 6px; /* 减小内边距，更紧凑 */
   border-radius: 4px;
   font-size: 14px;
   background: #f9f9f9;
+  min-width: 0; /* 允许输入框自适应宽度 */
 }
 
-/* 历史记录 */
+/* 历史记录 - 适配手机 */
 .history-wrap {
-  margin-left: 90px;
+  margin-left: 80px; /* 匹配标签宽度 */
   margin-top: 3px;
   margin-bottom: 5px;
 }
@@ -76,7 +79,7 @@ body {
   cursor: pointer;
 }
 
-/* 材料配置区 */
+/* 材料配置区 - 手机端单列布局 */
 .material-section {
   background: #fff;
   border-radius: 6px;
@@ -89,7 +92,7 @@ body {
 }
 .material-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr; /* 单列布局，避免挤在一起 */
   gap: 8px;
 }
 .material-item {
@@ -100,23 +103,26 @@ body {
 .material-item span {
   font-size: 13px;
   color: #666;
-  width: 60px;
+  width: 70px; /* 缩小标签宽度 */
+  flex-shrink: 0; /* 防止标签压缩 */
 }
 .material-item input, .material-item select {
   flex: 1;
   border: 1px solid #eee;
-  padding: 5px;
+  padding: 5px 4px; /* 减小内边距 */
   border-radius: 4px;
   font-size: 13px;
   background: #f9f9f9;
+  min-width: 0; /* 自适应宽度 */
 }
 .unit {
   font-size: 12px;
   color: #999;
   width: auto !important;
+  flex-shrink: 0; /* 防止单位文字被压缩 */
 }
 
-/* 结果区 */
+/* 结果区 - 适配手机 */
 .result-section {
   background: #fff;
   border-radius: 6px;
