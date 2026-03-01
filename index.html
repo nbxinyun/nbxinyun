@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>锯条成本核算</title>
+  <link rel="stylesheet" href="style.css">
+  <!-- PWA配置：添加到桌面 -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="锯条成本核算">
+  <meta name="theme-color" content="#07c160">
+</head>
+<body>
+  <div class="container">
+    <!-- 标题 -->
+    <div class="title">锯条成本核算</div>
+
+    <!-- 核心输入区 -->
+    <div class="input-section">
+      <!-- 产品规格 -->
+      <div class="form-item">
+        <span>产品规格：</span>
+        <input type="text" id="spec" placeholder="例：7520*55*0.95*18">
+      </div>
+      <!-- 规格历史记录 -->
+      <div id="specHistoryWrap" class="history-wrap" style="display: none;">
+        <div class="history-list" id="specHistory"></div>
+      </div>
+
+      <!-- 销售价 -->
+      <div class="form-item">
+        <span>销售价：</span>
+        <input type="number" id="salePrice" placeholder="300">
+      </div>
+      <!-- 销售价历史记录 -->
+      <div id="priceHistoryWrap" class="history-wrap" style="display: none;">
+        <div class="history-list" id="priceHistory"></div>
+      </div>
+    </div>
+
+    <!-- 材料配置区 -->
+    <div class="material-section">
+      <div class="material-title">材料配置</div>
+      <div class="material-grid">
+        <!-- 合金单价 -->
+        <div class="material-item">
+          <span>合金单价</span>
+          <input type="number" id="alloyPrice" placeholder="1100">
+          <span class="unit">元/kg</span>
+        </div>
+        <!-- 合金单价历史 -->
+        <div id="alloyHistoryWrap" class="history-wrap material-history" style="display: none;">
+          <div class="history-list" id="alloyHistory"></div>
+        </div>
+
+        <!-- 合金型号选择 -->
+        <div class="material-item">
+          <span>合金型号</span>
+          <select id="alloyType">
+            <option value="6000">3320-18（6000粒/kg）</option>
+            <option value="5280">3320-20（5280粒/kg）</option>
+            <option value="3824">4020-24（3824粒/kg）</option>
+            <option value="3250">4020-28（3250粒/kg）</option>
+            <option value="custom">其他（自定义）</option>
+          </select>
+        </div>
+        <!-- 自定义粒数 -->
+        <div id="customTeethWrap" class="material-item" style="display: none;">
+          <span>自定义粒数</span>
+          <input type="number" id="customTeeth" placeholder="输入粒数">
+          <span class="unit">粒/kg</span>
+        </div>
+
+        <!-- 焊丝单价 -->
+        <div class="material-item">
+          <span>焊丝单价</span>
+          <input type="number" id="wirePrice" placeholder="6200">
+          <span class="unit">元/kg</span>
+        </div>
+        <!-- 焊丝单价历史 -->
+        <div id="wireHistoryWrap" class="history-wrap material-history" style="display: none;">
+          <div class="history-list" id="wireHistory"></div>
+        </div>
+
+        <!-- 基带单价 -->
+        <div class="material-item">
+          <span>基带单价</span>
+          <input type="number" id="basePrice" placeholder="11.0">
+          <span class="unit">元/kg</span>
+        </div>
+        <!-- 基带单价历史 -->
+        <div id="baseHistoryWrap" class="history-wrap material-history" style="display: none;">
+          <div class="history-list" id="baseHistory"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 计算结果区 -->
+    <div id="resultSection" class="result-section" style="display: none;">
+      <div class="result-title">计算结果</div>
+      <div class="result-item" id="specResult"></div>
+      <div class="result-item total-cost" id="totalCost"></div>
+      <div class="result-item profit" id="profit"></div>
+      <div class="suggest-price" id="suggestPrice"></div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
