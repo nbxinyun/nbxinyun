@@ -65,7 +65,9 @@ const el = {
   specResult: document.getElementById('specResult'),
   totalCost: document.getElementById('totalCost'),
   profit: document.getElementById('profit'),
-  suggestPrice: document.getElementById('suggestPrice')
+  suggestPrice: document.getElementById('suggestPrice'),
+  // 新增：缓存日均产量DOM节点
+  dailyOutput: document.getElementById('dailyOutput')
 };
 
 // 初始化
@@ -245,7 +247,7 @@ function getTeethCount() {
   return parseFloat(el.customTeeth.value) || 6000;
 }
 
-// 计算核心逻辑
+// 计算核心逻辑（关键修改）
 function calc() {
   const spec = el.spec.value;
   const salePrice = el.salePrice.value;
@@ -253,8 +255,8 @@ function calc() {
   const wirePrice = parseFloat(el.wirePrice.value) || 6200;
   const basePrice = parseFloat(el.basePrice.value) || 11.0;
 
-  // 校验参数
-  if (!spec || !salePrice) {
+  // 仅校验规格（移除销售价强制校验，满足仅输规格就计算）
+  if (!spec) {
     el.resultSection.style.display = 'none';
     return;
   }
@@ -277,9 +279,10 @@ function calc() {
   const alloyCost = (teeth / alloyTeeth) * alloyPrice;
   const wireCost = (teeth * data.wireConsume / 1000 / data.wireDensity) * wirePrice;
 
-  // 固定成本分摊
+  // 固定成本分摊（提取日均产量相关计算）
   const t = teeth / data.teethPerMin + data.changeTime;
-  const perDay = (data.workHours * 60) / t;
+  const perDay = (data.workHours * 60) / t; // 单条生产线日均产量
+  const totalDailyOutput = perDay * data.lines; // 所有生产线日均总产量
   const perMonth = perDay * data.lines * (data.workDaysPerWeek * 4);
 
   const labor = data.labor / perMonth;
@@ -288,23 +291,41 @@ function calc() {
 
   // 总成本、利润、建议售价
   const totalCost = baseCost + alloyCost + wireCost + labor + rent + elec;
+  const costPerMeter = totalCost / len; // 新增：每米成本
   const suggestPrice = totalCost * 1.3;
-  const profit = Number(salePrice) - totalCost;
+  const profit = salePrice ? (Number(salePrice) - totalCost) : 0;
 
   // 更新结果
   data.result = {
     L, W, T, P,
     totalCost: totalCost.toFixed(2),
+    costPerMeter: costPerMeter.toFixed(2), // 每米成本
     profit: profit.toFixed(2),
-    suggestPrice: suggestPrice.toFixed(2)
+    suggestPrice: suggestPrice.toFixed(2),
+    dailyOutput: totalDailyOutput.toFixed(2) // 新增：日均产量（保留2位小数）
   };
 
   // 渲染结果
   el.specResult.textContent = `规格：${L}×${W}×${T}×${P}`;
-  el.totalCost.textContent = `材料成本：${totalCost.toFixed(2)} 元/条`;
-  el.profit.textContent = `毛利润：${profit.toFixed(2)} 元/条`;
-  el.profit.className = `result-item profit ${profit > 0 ? 'profit-green' : 'profit-red'}`;
+  // 显示成本（元/条 + 元/米）
+  el.totalCost.textContent = `材料成本：${totalCost.toFixed(2)} 元/条（${costPerMeter.toFixed(2)} 元/米）`;
+  
+  // 有销售价才显示利润，无则隐藏
+  if (salePrice) {
+    el.profit.textContent = `毛利润：${profit.toFixed(2)} 元/条`;
+    el.profit.className = `result-item profit ${profit > 0 ? 'profit-green' : 'profit-red'}`;
+    el.profit.style.display = 'block';
+  } else {
+    el.profit.style.display = 'none';
+  }
+  
+  // 始终显示建议售价
   el.suggestPrice.textContent = `最低销售价：${suggestPrice.toFixed(2)} 元/条`;
+  el.suggestPrice.style.display = 'block';
+  
+  // 新增：显示日均产量（所有生产线）
+  el.dailyOutput.textContent = `当前规格日均产量：${totalDailyOutput.toFixed(2)} 条`;
+  el.dailyOutput.style.display = 'block';
   
   el.resultSection.style.display = 'block';
 }
