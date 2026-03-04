@@ -10,11 +10,30 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="锯条成本核算">
   <meta name="theme-color" content="#07c160">
+  <style>
+    /* 新增样式：让标题和链接同行显示 */
+    .title-wrap {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .freight-link {
+      font-size: 14px;
+      color: #07c160;
+      text-decoration: none;
+    }
+    .freight-link:hover {
+      text-decoration: underline;
+    }
+  </style>
 </head>
 <body>
   <div class="container">
-    <!-- 标题 -->
-    <div class="title">锯条成本核算</div>
+    <!-- 标题区域修改：新增包裹容器，添加运费计算链接 -->
+    <div class="title-wrap">
+      <div class="title">锯条成本核算</div>
+      <a href="https://nbxinyun.github.io/gangdai/" target="_blank" class="freight-link">运费估算</a>
+    </div>
 
     <!-- 核心输入区 -->
     <div class="input-section">
