@@ -11,25 +11,187 @@
   <meta name="apple-mobile-web-app-title" content="锯条成本核算">
   <meta name="theme-color" content="#07c160">
   <style>
-    /* 新增样式：让标题和链接同行显示 */
+    /* 全局基础样式 */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      padding: 10px;
+      font-family: sans-serif;
+    }
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    /* 标题+运费链接 样式 */
     .title-wrap {
       display: flex;
       justify-content: space-between;
       align-items: center;
+      margin-bottom: 10px;
+      font-size: 18px;
+      font-weight: bold;
     }
     .freight-link {
       font-size: 14px;
       color: #07c160;
       text-decoration: none;
+      font-weight: normal;
     }
     .freight-link:hover {
       text-decoration: underline;
+    }
+    /* 输入区通用样式 */
+    .input-section {
+      margin-bottom: 15px;
+    }
+    .form-item {
+      display: flex;
+      align-items: center;
+      margin-bottom: 8px;
+      gap: 8px;
+    }
+    .form-item span {
+      white-space: nowrap;
+    }
+    .form-item input[type="text"],
+    .form-item input[type="number"] {
+      padding: 4px;
+      border: 1px solid #ccc;
+      border-radius: 2px;
+    }
+    /* 销售价行样式 */
+    .sale-price-item {
+      gap: 5px;
+    }
+    .sale-price-separator {
+      margin: 0 5px;
+    }
+    /* 材料配置区核心布局（按表格样式） */
+    .material-section {
+      margin-bottom: 15px;
+    }
+    .material-title {
+      display: none; /* 隐藏原有标题，融入行内 */
+    }
+    /* 单价表头行 */
+    .price-header-row {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      margin-bottom: 8px;
+    }
+    .current-price-label {
+      font-weight: bold;
+    }
+    .history-price-label {
+      font-weight: bold;
+      margin-left: 40px;
+    }
+    /* 材料行样式（当前价+历史价同行） */
+    .material-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+    .material-name {
+      width: 80px;
+      white-space: nowrap;
+    }
+    .current-price-group {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .history-price-group {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      margin-left: 20px;
+    }
+    /* 合金型号行特殊处理 */
+    .alloy-type-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+    .alloy-type-row select {
+      padding: 4px;
+      border: 1px solid #ccc;
+      border-radius: 2px;
+    }
+    /* 自定义粒数行 */
+    #customTeethWrap {
+      display: none;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+    /* 输入框宽度限制 */
+    input[type="number"] {
+      max-width: 80px;
+    }
+    /* 历史记录弹窗样式 */
+    .history-wrap {
+      display: none;
+      position: absolute;
+      background: #fff;
+      border: 1px solid #ccc;
+      padding: 5px;
+      z-index: 10;
+    }
+    .history-item {
+      padding: 3px 8px;
+      cursor: pointer;
+    }
+    .history-item:hover {
+      background: #f5f5f5;
+    }
+    /* 结果区样式 */
+    .result-section {
+      margin-top: 15px;
+      border-top: 1px solid #eee;
+      padding-top: 10px;
+    }
+    .result-title {
+      font-weight: bold;
+      margin-bottom: 8px;
+    }
+    .result-item {
+      margin-bottom: 5px;
+    }
+    #historyTotalCost {
+      color: #999;
+      font-weight: normal;
+      margin-bottom: 8px;
+    }
+    /* 成本对比样式 */
+    .cost-rise {
+      color: #f53f3f;
+      font-weight: bold;
+    }
+    .cost-drop {
+      color: #07c160;
+      font-weight: bold;
+    }
+    .cost-same {
+      color: #666;
+    }
+    .profit {
+      margin-bottom: 5px;
+    }
+    .suggest-price {
+      margin-bottom: 5px;
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <!-- 标题区域修改：新增包裹容器，添加运费计算链接 -->
+    <!-- 标题区域 -->
     <div class="title-wrap">
       <div class="title">锯条成本核算</div>
       <a href="https://nbxinyun.github.io/gangdai/" target="_blank" class="freight-link">运费估算</a>
@@ -40,7 +202,7 @@
       <!-- 产品规格 -->
       <div class="form-item">
         <span>产品规格：</span>
-        <input type="text" id="spec" placeholder="例：7520*55*0.95*18">
+        <input type="text" id="spec" placeholder="例：5300×100×1.05×20">
       </div>
       <!-- 规格历史记录 -->
       <div id="specHistoryWrap" class="history-wrap" style="display: none;">
@@ -48,77 +210,98 @@
       </div>
 
       <!-- 销售价 -->
-<div class="form-item sale-price-item"> <!-- 新增sale-price-item类 -->
-  <span>销售价：</span>
-  <input type="number" id="salePricePerMeter" placeholder="元/米">
-  <span class="unit">元/米</span>
-  <span class="sale-price-separator">/</span> <!-- 新增separator类 -->
-  <input type="number" id="salePricePerPiece" placeholder="元/条">
-  <span class="unit">元/条</span>
-</div>
-<!-- 销售价历史记录（保留，适配新输入框） -->
-<div id="priceHistoryWrap" class="history-wrap" style="display: none;">
-  <div class="history-list" id="priceHistory"></div>
-</div>
+      <div class="form-item sale-price-item">
+        <span>销售价：</span>
+        <input type="number" id="salePricePerMeter" placeholder="50">
+        <span class="unit">元/米</span>
+        <span class="sale-price-separator">/</span>
+        <input type="number" id="salePricePerPiece" placeholder="265">
+        <span class="unit">元/条</span>
+      </div>
+      <!-- 销售价历史记录 -->
+      <div id="priceHistoryWrap" class="history-wrap" style="display: none;">
+        <div class="history-list" id="priceHistory"></div>
+      </div>
     </div>
 
-    <!-- 材料配置区 -->
+    <!-- 材料配置区（按新样式重构） -->
     <div class="material-section">
-      <div class="material-title">材料配置</div>
-      <div class="material-grid">
-        <!-- 合金单价 -->
-        <div class="material-item">
-          <span>合金单价</span>
-          <input type="number" id="alloyPrice" placeholder="2250">
+      <!-- 单价表头行 -->
+      <div class="price-header-row">
+        <span class="current-price-label">当前单价</span>
+        <span class="history-price-label">历史单价</span>
+      </div>
+
+      <!-- 合金单价行 -->
+      <div class="material-row">
+        <span class="material-name">合金单价</span>
+        <div class="current-price-group">
+          <input type="number" id="alloyPrice" placeholder="2600" maxlength="6" value="2600">
           <span class="unit">元/kg</span>
         </div>
-        <!-- 合金单价历史 -->
-        <div id="alloyHistoryWrap" class="history-wrap material-history" style="display: none;">
-          <div class="history-list" id="alloyHistory"></div>
-        </div>
-
-        <!-- 合金型号选择 -->
-        <div class="material-item">
-          <span>合金型号</span>
-          <select id="alloyType">
-            <option value="6000">YG6X-3320-18合金 6000</option>
-            <option value="7000">YG6X-3318-18合金 7000</option>
-	    <option value="7400">YS06B-3318-18合金 7400</option>
-	    <option value="11000">YM8-3320-18合金 11000</option>
-            <option value="5280">2.0合金 5280</option>
-            <option value="3824">2.4合金 3824</option>
-            <option value="3250">2.8合金 3250</option>
-            <option value="custom">其他（自定义）</option>
-          </select>
-        </div>
-        <!-- 自定义粒数 -->
-        <div id="customTeethWrap" class="material-item" style="display: none;">
-          <span>自定义粒数</span>
-          <input type="number" id="customTeeth" placeholder="输入粒数">
-          <span class="unit">粒/kg</span>
-        </div>
-
-        <!-- 焊丝单价 -->
-        <div class="material-item">
-          <span>焊丝单价</span>
-          <input type="number" id="wirePrice" placeholder="6200">
+        <div class="history-price-group">
+          <input type="number" id="alloyHistoryPrice" placeholder="400" maxlength="6" value="400">
           <span class="unit">元/kg</span>
         </div>
-        <!-- 焊丝单价历史 -->
-        <div id="wireHistoryWrap" class="history-wrap material-history" style="display: none;">
-          <div class="history-list" id="wireHistory"></div>
-        </div>
+      </div>
 
-        <!-- 基带单价 -->
-        <div class="material-item">
-          <span>基带单价</span>
-          <input type="number" id="basePrice" placeholder="11.0">
+      <!-- 合金型号行 -->
+      <div class="alloy-type-row">
+        <span class="material-name">合金型号</span>
+        <select id="alloyType">
+          <option value="6000">YG6X-3320-18合金 6000</option>
+          <option value="7000">YG6X-3318-18合金 7000</option>
+          <option value="7400">YS06B-3318-18合金 7400</option>
+          <option value="11000">YM8-3320-18合金 11000</option>
+          <option value="5280">2.0合金 5280</option>
+          <option value="3824">2.4合金 3824</option>
+          <option value="3250">2.8合金 3250</option>
+          <option value="custom">其他（自定义）</option>
+        </select>
+      </div>
+
+      <!-- 自定义粒数行 -->
+      <div id="customTeethWrap" class="form-item" style="display: none;">
+        <span>自定义粒数</span>
+        <input type="number" id="customTeeth" placeholder="输入粒数">
+        <span class="unit">粒/kg</span>
+      </div>
+
+      <!-- 焊丝单价行 -->
+      <div class="material-row">
+        <span class="material-name">焊丝单价</span>
+        <div class="current-price-group">
+          <input type="number" id="wirePrice" placeholder="6500" maxlength="6" value="6500">
           <span class="unit">元/kg</span>
         </div>
-        <!-- 基带单价历史 -->
-        <div id="baseHistoryWrap" class="history-wrap material-history" style="display: none;">
-          <div class="history-list" id="baseHistory"></div>
+        <div class="history-price-group">
+          <input type="number" id="wireHistoryPrice" placeholder="3000" maxlength="6" value="3000">
+          <span class="unit">元/kg</span>
         </div>
+      </div>
+
+      <!-- 基带单价行 -->
+      <div class="material-row">
+        <span class="material-name">基带单价</span>
+        <div class="current-price-group">
+          <input type="number" id="basePrice" placeholder="11" maxlength="6" value="11">
+          <span class="unit">元/kg</span>
+        </div>
+        <div class="history-price-group">
+          <input type="number" id="baseHistoryPrice" placeholder="10" maxlength="6" value="10">
+          <span class="unit">元/kg</span>
+        </div>
+      </div>
+
+      <!-- 历史记录弹窗 -->
+      <div id="alloyHistoryWrap" class="history-wrap material-history" style="display: none;">
+        <div class="history-list" id="alloyHistory"></div>
+      </div>
+      <div id="wireHistoryWrap" class="history-wrap material-history" style="display: none;">
+        <div class="history-list" id="wireHistory"></div>
+      </div>
+      <div id="baseHistoryWrap" class="history-wrap material-history" style="display: none;">
+        <div class="history-list" id="baseHistory"></div>
       </div>
     </div>
 
@@ -127,9 +310,13 @@
       <div class="result-title">计算结果</div>
       <div class="result-item" id="specResult"></div>
       <div class="result-item total-cost" id="totalCost"></div>
+      <!-- 历史价成本 -->
+      <div class="result-item total-cost" id="historyTotalCost"></div>
+      <!-- 价格对比 -->
+      <div class="result-item" id="costCompare"></div>
       <div class="result-item profit" id="profit"></div>
       <div class="suggest-price" id="suggestPrice"></div>
-	<div class="result-item" id="dailyOutput"></div>
+      <div class="result-item" id="dailyOutput"></div>
     </div>
   </div>
 

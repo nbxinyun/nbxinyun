@@ -1,29 +1,35 @@
 // 全局数据
 const data = {
   spec: '',
-  salePricePerMeter: '', // 新增：元/米
-  salePricePerPiece: '', // 新增：元/条
-  alloyPrice: 2250,
-  wirePrice: 6200,
+  salePricePerMeter: '', 
+  salePricePerPiece: '', 
+  alloyPrice: 2600, // 匹配示例默认值
+  wirePrice: 6500,  // 匹配示例默认值
   basePrice: 11.0,
+  alloyHistoryPrice: 400,
+  wireHistoryPrice: 3000,
+  baseHistoryPrice: 10,
   alloyType: '6000',
   customTeeth: '',
   result: null,
 
   // 历史记录
   specHistory: [],
-  priceHistory: [], // 保留，存储元/条的历史
+  priceHistory: [], 
   alloyHistory: [],
   wireHistory: [],
   baseHistory: [],
 
   // 上次值
   lastSpec: '',
-  lastPricePerMeter: '', // 新增
-  lastPricePerPiece: '', // 新增
-  lastAlloy: 2250,
-  lastWire: 6200,
+  lastPricePerMeter: '', 
+  lastPricePerPiece: '', 
+  lastAlloy: 2600,
+  lastWire: 6500,
   lastBase: 11.0,
+  lastAlloyHistory: 400,
+  lastWireHistory: 3000,
+  lastBaseHistory: 10,
 
   // 固定参数
   wireDensity: 580,
@@ -38,19 +44,20 @@ const data = {
   workHours:9, 
   workDaysPerWeek:6,
   
-  // 缓存当前规格长度（用于联动计算）
   currentLen: 0
 };
 
 // DOM元素
 const el = {
   spec: document.getElementById('spec'),
-  // 替换原有salePrice，新增两个联动输入框
   salePricePerMeter: document.getElementById('salePricePerMeter'),
   salePricePerPiece: document.getElementById('salePricePerPiece'),
   alloyPrice: document.getElementById('alloyPrice'),
   wirePrice: document.getElementById('wirePrice'),
   basePrice: document.getElementById('basePrice'),
+  alloyHistoryPrice: document.getElementById('alloyHistoryPrice'),
+  wireHistoryPrice: document.getElementById('wireHistoryPrice'),
+  baseHistoryPrice: document.getElementById('baseHistoryPrice'),
   alloyType: document.getElementById('alloyType'),
   customTeeth: document.getElementById('customTeeth'),
   customTeethWrap: document.getElementById('customTeethWrap'),
@@ -71,9 +78,11 @@ const el = {
   resultSection: document.getElementById('resultSection'),
   specResult: document.getElementById('specResult'),
   totalCost: document.getElementById('totalCost'),
+  historyTotalCost: document.getElementById('historyTotalCost'),
+  costCompare: document.getElementById('costCompare'),
   profit: document.getElementById('profit'),
   suggestPrice: document.getElementById('suggestPrice'),
-  dailyOutput: document.getElementById('dailyOutput') // 保留之前新增的日均产量
+  dailyOutput: document.getElementById('dailyOutput')
 };
 
 // 初始化
@@ -82,6 +91,9 @@ function init() {
   el.alloyPrice.value = data.alloyPrice;
   el.wirePrice.value = data.wirePrice;
   el.basePrice.value = data.basePrice;
+  el.alloyHistoryPrice.value = data.alloyHistoryPrice;
+  el.wireHistoryPrice.value = data.wireHistoryPrice;
+  el.baseHistoryPrice.value = data.baseHistoryPrice;
 
   // 绑定事件
   bindEvents();
@@ -102,12 +114,10 @@ function bindEvents() {
     el.specHistoryWrap.style.display = 'none';
     addHistory('spec', val);
     
-    // 解析规格并缓存长度（用于销售价联动）
     if (val) {
       const p = val.split('*').map(Number);
       if (p.length === 4 && !p.some(isNaN)) {
-        data.currentLen = p[0] / 1000; // 毫米转米
-        // 若已有销售价，重新联动计算
+        data.currentLen = p[0] / 1000;
         syncSalePrice();
       }
     }
@@ -115,7 +125,7 @@ function bindEvents() {
     calc();
   });
 
-  // 新增：销售价-元/米输入框事件
+  // 销售价-元/米输入框事件
   el.salePricePerMeter.addEventListener('focus', () => {
     data.lastPricePerMeter = el.salePricePerMeter.value;
     el.salePricePerMeter.value = '';
@@ -127,18 +137,17 @@ function bindEvents() {
     el.salePricePerMeter.value = val;
     el.priceHistoryWrap.style.display = 'none';
     
-    // 联动计算元/条
     if (val && data.currentLen) {
       const perPiece = (parseFloat(val) * data.currentLen).toFixed(2);
       el.salePricePerPiece.value = perPiece;
       data.salePricePerPiece = perPiece;
-      addHistory('price', perPiece); // 历史记录存储元/条
+      addHistory('price', perPiece);
     }
     
     calc();
   });
   
-  // 新增：销售价-元/条输入框事件
+  // 销售价-元/条输入框事件
   el.salePricePerPiece.addEventListener('focus', () => {
     data.lastPricePerPiece = el.salePricePerPiece.value;
     el.salePricePerPiece.value = '';
@@ -151,7 +160,6 @@ function bindEvents() {
     el.priceHistoryWrap.style.display = 'none';
     addHistory('price', val);
     
-    // 联动计算元/米
     if (val && data.currentLen) {
       const perMeter = (parseFloat(val) / data.currentLen).toFixed(2);
       el.salePricePerMeter.value = perMeter;
@@ -176,6 +184,17 @@ function bindEvents() {
     calc();
   });
 
+  // 合金历史价输入事件
+  el.alloyHistoryPrice.addEventListener('focus', () => {
+    data.lastAlloyHistory = el.alloyHistoryPrice.value;
+    el.alloyHistoryPrice.value = '';
+  });
+  el.alloyHistoryPrice.addEventListener('blur', () => {
+    const val = el.alloyHistoryPrice.value || data.lastAlloyHistory;
+    el.alloyHistoryPrice.value = val;
+    calc();
+  });
+
   // 焊丝单价输入
   el.wirePrice.addEventListener('focus', () => {
     data.lastWire = el.wirePrice.value;
@@ -188,6 +207,17 @@ function bindEvents() {
     el.wirePrice.value = val;
     el.wireHistoryWrap.style.display = 'none';
     addHistory('wire', val);
+    calc();
+  });
+
+  // 焊丝历史价输入事件
+  el.wireHistoryPrice.addEventListener('focus', () => {
+    data.lastWireHistory = el.wireHistoryPrice.value;
+    el.wireHistoryPrice.value = '';
+  });
+  el.wireHistoryPrice.addEventListener('blur', () => {
+    const val = el.wireHistoryPrice.value || data.lastWireHistory;
+    el.wireHistoryPrice.value = val;
     calc();
   });
 
@@ -206,6 +236,17 @@ function bindEvents() {
     calc();
   });
 
+  // 基带历史价输入事件
+  el.baseHistoryPrice.addEventListener('focus', () => {
+    data.lastBaseHistory = el.baseHistoryPrice.value;
+    el.baseHistoryPrice.value = '';
+  });
+  el.baseHistoryPrice.addEventListener('blur', () => {
+    const val = el.baseHistoryPrice.value || data.lastBaseHistory;
+    el.baseHistoryPrice.value = val;
+    calc();
+  });
+
   // 合金型号选择
   el.alloyType.addEventListener('change', () => {
     data.alloyType = el.alloyType.value;
@@ -216,12 +257,11 @@ function bindEvents() {
   // 自定义粒数
   el.customTeeth.addEventListener('blur', calc);
 
-  // 历史记录点击（适配元/条）
+  // 历史记录点击
   el.specHistory.addEventListener('click', (e) => {
     if (e.target.classList.contains('history-item')) {
       el.spec.value = e.target.dataset.val;
       el.specHistoryWrap.style.display = 'none';
-      // 解析规格并缓存长度
       const p = el.spec.value.split('*').map(Number);
       if (p.length === 4 && !p.some(isNaN)) {
         data.currentLen = p[0] / 1000;
@@ -235,7 +275,6 @@ function bindEvents() {
       const val = e.target.dataset.val;
       el.salePricePerPiece.value = val;
       el.priceHistoryWrap.style.display = 'none';
-      // 联动计算元/米
       if (val && data.currentLen) {
         const perMeter = (parseFloat(val) / data.currentLen).toFixed(2);
         el.salePricePerMeter.value = perMeter;
@@ -267,9 +306,8 @@ function bindEvents() {
   });
 }
 
-// 新增：同步销售价（切换规格时重新计算联动值）
+// 同步销售价
 function syncSalePrice() {
-  // 优先以元/条为准
   if (el.salePricePerPiece.value) {
     const perMeter = (parseFloat(el.salePricePerPiece.value) / data.currentLen).toFixed(2);
     el.salePricePerMeter.value = perMeter;
@@ -323,50 +361,64 @@ function getTeethCount() {
 // 计算核心逻辑
 function calc() {
   const spec = el.spec.value;
-  // 从新输入框获取销售价（优先取元/条）
   const salePricePerPiece = el.salePricePerPiece.value;
-  const alloyPrice = parseFloat(el.alloyPrice.value) || 2250;
-  const wirePrice = parseFloat(el.wirePrice.value) || 6200;
+  const alloyPrice = parseFloat(el.alloyPrice.value) || 2600;
+  const wirePrice = parseFloat(el.wirePrice.value) || 6500;
   const basePrice = parseFloat(el.basePrice.value) || 11.0;
+  const alloyHistoryPrice = parseFloat(el.alloyHistoryPrice.value) || 400;
+  const wireHistoryPrice = parseFloat(el.wireHistoryPrice.value) || 3000;
+  const baseHistoryPrice = parseFloat(el.baseHistoryPrice.value) || 10;
 
-  // 仅校验规格（销售价非必填）
   if (!spec) {
     el.resultSection.style.display = 'none';
     return;
   }
 
-  // 解析规格
   const p = spec.split('*').map(Number);
   if (p.length !== 4 || p.some(isNaN)) {
-    alert('规格格式错误！请输入如：7520*55*0.95*18');
+    alert('规格格式错误！请输入如：5300×100×1.05×20');
     el.resultSection.style.display = 'none';
     return;
   }
 
   const L = p[0], W=p[1], T=p[2], P=p[3];
   const len = L/1000;
-  data.currentLen = len; // 缓存长度
+  data.currentLen = len;
   const teeth = L/P;
   const alloyTeeth = getTeethCount();
 
-  // 计算成本
+  // 计算当前价成本
   const baseCost = data.baseWeight * len * basePrice;
   const alloyCost = (teeth / alloyTeeth) * alloyPrice;
   const wireCost = (teeth * data.wireConsume / 1000 / data.wireDensity) * wirePrice;
 
+  // 计算历史价成本
+  const baseHistoryCost = data.baseWeight * len * baseHistoryPrice;
+  const alloyHistoryCost = (teeth / alloyTeeth) * alloyHistoryPrice;
+  const wireHistoryCost = (teeth * data.wireConsume / 1000 / data.wireDensity) * wireHistoryPrice;
+
   // 固定成本分摊
   const t = teeth / data.teethPerMin + data.changeTime;
-  const perDay = (data.workHours * 60) / t; // 单条线日均产量
-  const totalDailyOutput = perDay * data.lines; // 总日均产量
+  const perDay = (data.workHours * 60) / t;
+  const totalDailyOutput = perDay * data.lines;
   const perMonth = perDay * data.lines * (data.workDaysPerWeek * 4);
 
   const labor = data.labor / perMonth;
   const rent = data.rent / perMonth;
   const elec = data.electric / perMonth;
 
-  // 总成本、每米成本、建议售价
+  // 当前价总成本、每米成本
   const totalCost = baseCost + alloyCost + wireCost + labor + rent + elec;
-  const costPerMeter = totalCost / len; // 元/米成本
+  const costPerMeter = totalCost / len;
+  
+  // 历史价总成本、每米成本
+  const historyTotalCost = baseHistoryCost + alloyHistoryCost + wireHistoryCost + labor + rent + elec;
+  const historyCostPerMeter = historyTotalCost / len;
+
+  // 成本差值计算
+  const costDiff = totalCost - historyTotalCost;
+  const costDiffPerMeter = costPerMeter - historyCostPerMeter;
+
   const suggestPrice = totalCost * 1.3;
   const profit = salePricePerPiece ? (Number(salePricePerPiece) - totalCost) : 0;
 
@@ -375,6 +427,10 @@ function calc() {
     L, W, T, P,
     totalCost: totalCost.toFixed(2),
     costPerMeter: costPerMeter.toFixed(2),
+    historyTotalCost: historyTotalCost.toFixed(2),
+    historyCostPerMeter: historyCostPerMeter.toFixed(2),
+    costDiff: costDiff.toFixed(2),
+    costDiffPerMeter: costDiffPerMeter.toFixed(2),
     profit: profit.toFixed(2),
     suggestPrice: suggestPrice.toFixed(2),
     dailyOutput: totalDailyOutput.toFixed(2)
@@ -382,49 +438,40 @@ function calc() {
 
   // 渲染结果
   el.specResult.textContent = `规格：${L}×${W}×${T}×${P}`;
-  el.totalCost.textContent = `材料成本：${totalCost.toFixed(2)} 元/条（${costPerMeter.toFixed(2)} 元/米）`;
+  el.totalCost.textContent = `材料：${totalCost.toFixed(2)} 元/条    ${costPerMeter.toFixed(2)} 元/米    当前成本`;
+  el.historyTotalCost.textContent = `历史成本：${historyTotalCost.toFixed(2)} 元/条    ${historyCostPerMeter.toFixed(2)} 元/米`;
+  
+  // 渲染成本对比
+  let compareText = '';
+  let compareClass = '';
+  if (costDiff > 0) {
+    compareText = `成本对比：当前增加 ${Math.abs(costDiff).toFixed(2)} 元/条（${Math.abs(costDiffPerMeter).toFixed(2)} 元/米）`;
+    compareClass = 'cost-rise';
+  } else if (costDiff < 0) {
+    compareText = `成本对比：当前减少 ${Math.abs(costDiff).toFixed(2)} 元/条（${Math.abs(costDiffPerMeter).toFixed(2)} 元/米）`;
+    compareClass = 'cost-drop';
+  } else {
+    compareText = `成本对比：当前价与历史价持平`;
+    compareClass = 'cost-same';
+  }
+  el.costCompare.className = `result-item ${compareClass}`;
+  el.costCompare.textContent = compareText;
   
   // 有销售价才显示利润
   if (salePricePerPiece) {
-    el.profit.textContent = `毛利润：${profit.toFixed(2)} 元/条`;
+    el.profit.textContent = `当前毛利润：${profit.toFixed(2)} 元/条`;
     el.profit.className = `result-item profit ${profit > 0 ? 'profit-green' : 'profit-red'}`;
     el.profit.style.display = 'block';
   } else {
     el.profit.style.display = 'none';
   }
   
-  // 始终显示建议售价和日均产量
   el.suggestPrice.textContent = `最低销售价：${suggestPrice.toFixed(2)} 元/条`;
   el.suggestPrice.style.display = 'block';
   el.dailyOutput.textContent = `当前规格日均产量：${totalDailyOutput.toFixed(2)} 条`;
   el.dailyOutput.style.display = 'block';
   
   el.resultSection.style.display = 'block';
-}
-
-// PWA配置：manifest.json（可选）
-function createManifest() {
-  const manifest = {
-    "name": "锯条成本核算",
-    "short_name": "成本核算",
-    "start_url": "./index.html",
-    "display": "standalone",
-    "background_color": "#f5f5f5",
-    "theme_color": "#07c160",
-    "icons": [
-      {
-        "src": "icon.png",
-        "sizes": "192x192",
-        "type": "image/png"
-      }
-    ]
-  };
-  
-  const blob = new Blob([JSON.stringify(manifest)], { type: 'application/json' });
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = 'manifest.json';
-  a.click();
 }
 
 // 初始化
