@@ -3,8 +3,8 @@ const data = {
   spec: '',
   salePricePerMeter: '', 
   salePricePerPiece: '', 
-  alloyPrice: 2600, // 匹配示例默认值
-  wirePrice: 6500,  // 匹配示例默认值
+  alloyPrice: 2600,
+  wirePrice: 6500,
   basePrice: 11.0,
   alloyHistoryPrice: 400,
   wireHistoryPrice: 3000,
@@ -436,39 +436,49 @@ function calc() {
     dailyOutput: totalDailyOutput.toFixed(2)
   };
 
-  // 渲染结果
+  // 渲染结果（带高亮样式）
   el.specResult.textContent = `规格：${L}×${W}×${T}×${P}`;
-  el.totalCost.textContent = `材料：${totalCost.toFixed(2)} 元/条    ${costPerMeter.toFixed(2)} 元/米    当前成本`;
-  el.historyTotalCost.textContent = `历史成本：${historyTotalCost.toFixed(2)} 元/条    ${historyCostPerMeter.toFixed(2)} 元/米`;
   
-  // 渲染成本对比
+  // 渲染当前成本（数字高亮）
+  el.totalCost.innerHTML = `当前成本：<span class="cost-figure">${totalCost.toFixed(2)}</span> 元/条（<span class="cost-figure">${costPerMeter.toFixed(2)}</span> 元/米）`;
+  
+  // 渲染历史成本（数字高亮）
+  el.historyTotalCost.innerHTML = `历史成本：<span class="cost-figure">${historyTotalCost.toFixed(2)}</span> 元/条（<span class="cost-figure">${historyCostPerMeter.toFixed(2)}</span> 元/米）`;
+  
+  // 渲染成本对比（差值高亮）
   let compareText = '';
   let compareClass = '';
   if (costDiff > 0) {
-    compareText = `成本对比：当前增加 ${Math.abs(costDiff).toFixed(2)} 元/条（${Math.abs(costDiffPerMeter).toFixed(2)} 元/米）`;
+    compareText = `成本对比：当前增加 <span class="cost-rise">${Math.abs(costDiff).toFixed(2)}</span> 元/条（<span class="cost-rise">${Math.abs(costDiffPerMeter).toFixed(2)}</span> 元/米）`;
     compareClass = 'cost-rise';
   } else if (costDiff < 0) {
-    compareText = `成本对比：当前减少 ${Math.abs(costDiff).toFixed(2)} 元/条（${Math.abs(costDiffPerMeter).toFixed(2)} 元/米）`;
+    compareText = `成本对比：当前减少 <span class="cost-drop">${Math.abs(costDiff).toFixed(2)}</span> 元/条（<span class="cost-drop">${Math.abs(costDiffPerMeter).toFixed(2)}</span> 元/米）`;
     compareClass = 'cost-drop';
   } else {
     compareText = `成本对比：当前价与历史价持平`;
     compareClass = 'cost-same';
   }
   el.costCompare.className = `result-item ${compareClass}`;
-  el.costCompare.textContent = compareText;
+  el.costCompare.innerHTML = compareText;
   
-  // 有销售价才显示利润
+  // 有销售价才显示利润（盈亏分色）
   if (salePricePerPiece) {
-    el.profit.textContent = `当前毛利润：${profit.toFixed(2)} 元/条`;
-    el.profit.className = `result-item profit ${profit > 0 ? 'profit-green' : 'profit-red'}`;
+    const profitClass = profit > 0 ? 'profit-positive' : 'profit-negative';
+    el.profit.innerHTML = `当前毛利润：<span class="profit-figure ${profitClass}">${profit.toFixed(2)}</span> 元/条`;
+    el.profit.className = `result-item profit ${profit > 0 ? 'profit-positive' : 'profit-negative'}`;
     el.profit.style.display = 'block';
   } else {
     el.profit.style.display = 'none';
   }
   
-  el.suggestPrice.textContent = `最低销售价：${suggestPrice.toFixed(2)} 元/条`;
+  // 渲染最低销售价（数字高亮）
+  el.suggestPrice.innerHTML = `最低销售价：<span class="suggest-price-figure">${suggestPrice.toFixed(2)}</span> 元/条`;
+  el.suggestPrice.className = 'suggest-price';
   el.suggestPrice.style.display = 'block';
+  
+  // 渲染日均产量
   el.dailyOutput.textContent = `当前规格日均产量：${totalDailyOutput.toFixed(2)} 条`;
+  el.dailyOutput.className = 'result-item';
   el.dailyOutput.style.display = 'block';
   
   el.resultSection.style.display = 'block';
